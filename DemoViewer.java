@@ -1,6 +1,7 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.Path2D;
+import java.awt.image.BufferedImage;
 import java.util.*;
 import java.util.List;
 
@@ -48,11 +49,26 @@ public class DemoViewer{
 
                 g2.translate(getWidth() / 2, getHeight() / 2);
                 g2.setColor(Color.WHITE);
+
+                BufferedImage img = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB)
                 for (Triangle t : tris) {
 
                     Vertex v1 = transform.transform(t.v1);
                     Vertex v2 = transform.transform(t.v2);
                     Vertex v3 = transform.transform(t.v3);
+
+                    v1.x += getWidth() / 2;
+                    v1.y += getHeight() / 2;
+                    v2.x += getWidth() / 2;
+                    v2.y += getHeight() / 2;
+                    v3.x += getWidth() / 2;
+                    v3.y += getHeight() / 2;
+
+                    int minX = (int) Math.max(0, Math.ceil(Math.min(v1.x, Math.min(v2.x, v3.x))));
+                    int maxX = (int) Math.min(img.getWidth() - 1, Math.floor(Math.max(v1.x, Math.max(v2.x, v3.x))));
+
+                    int minY = (int) Math.max(0, Math.ceil(Math.min(v1.x, Math.min(v2.x, v3.x))));
+
 
                     Path2D path = new Path2D.Double();
                     path.moveTo(v1.x, v1.y);
