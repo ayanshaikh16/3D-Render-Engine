@@ -1,6 +1,5 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.geom.Path2D;
 import java.awt.image.BufferedImage;
 import java.util.*;
 import java.util.List;
@@ -21,8 +20,6 @@ public class DemoViewer{
         JSlider pitchSlider = new JSlider(SwingConstants.VERTICAL, -90, 90, 0);
         pane.add(pitchSlider, BorderLayout.EAST);
 
-        headingSlider.addChangeListener(e -> frame.repaint());
-        pitchSlider.addChangeListener(e -> frame.repaint());
 
 
         JPanel renderPanel = new JPanel(){
@@ -63,6 +60,32 @@ public class DemoViewer{
                     Vertex v2 = transform.transform(t.v2);
                     Vertex v3 = transform.transform(t.v3);
 
+                    Vertex ab = new Vertex(
+                        v2.x - v1.x,
+                        v2.y - v1.y,
+                        v2.z - v1.z
+                    );
+                    Vertex ac = new Vertex(
+                        v3.x - v1.x,
+                        v3.y - v1.y,
+                        v3.z - v1.z
+                    );
+
+                    Vertex norm = new Vertex(
+                        ab.y * ac.z - ab.z * ac.y,
+                        ab.z * ac.x - ab.x * ac.z,
+                        ab.x * ac.y - ab.y * ac.x
+                    );
+
+                    double normalLength = Math.sqrt( norm.x * norm.x + norm.y * norm.y + norm.z * norm.z);
+
+                    norm.x /= normalLength;
+                    norm.y /= normalLength;
+                    norm.z /= normalLength;
+
+
+                    double angleCos = Math.abs(norm.z);
+
                     v1.x += getWidth() / 2;
                     v1.y += getHeight() / 2;
                     v2.x += getWidth() / 2;
@@ -90,21 +113,24 @@ public class DemoViewer{
                                 int zIndex = y * img.getWidth() + x;
 
                                 if(zBuffer[zIndex] < depth){
-                                    img.setRGB(x, y, t.color.getRGB());
+                                    Color shaded = getShade(t.color, angleCos);
+                                    img.setRGB(x, y, shaded.getRGB());
                                     zBuffer[zIndex] = depth;
                                 }
                             }
                         }
                     }
-
-                    g2.drawImage(img, 0, 0, null);
-
-                    
                 }
+
+                g2.drawImage(img, 0, 0, null);
+
             }
         };
 
         pane.add(renderPanel, BorderLayout.CENTER);
+
+        headingSlider.addChangeListener(e -> renderPanel.repaint());
+        pitchSlider.addChangeListener(e -> renderPanel.repaint());
 
         
         tris.add(new Triangle(new Vertex(100, 100, 100), new Vertex(-100, -100, 100),new Vertex(-100, 100, -100),Color.WHITE));
@@ -162,5 +188,17 @@ public class DemoViewer{
             in.x * values[2] + in.y * values[5] + in.z * values[8]
             );
         }
+    }
+
+    public static Color getShade(Color color, double shade){
+        double redLinear = Math.pow(color.getRed(), 2.4) * shade;
+        double greenLinear = Math.pow(color.getGreen(), 2.4) * shade;
+        double blueLinear = Math.pow(color.getBlue(), 2.4) * shade;
+
+        int red = (int) Math.pow(redLinear, 1.0/2.4);
+        int green = (int) Math.pow(greenLinear, 1.0/2.4);
+        int blue = (int) Math.pow(blueLinear, 1.0/2.4);
+
+        return new Color(red, green, blue);
     }
 }
