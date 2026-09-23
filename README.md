@@ -112,6 +112,7 @@ git clone https://github.com/your-username/your-repo-name.git
 
 Compile and run:
 javac DemoViewer.java
+
 java DemoViewer
 
 Use the sliders to rotate the 3D object.
